@@ -34,7 +34,8 @@ create_link() {
   local link_path_dirname=$(dirname $link_path)
 
   if [ -f $link_path ] && [ ! -L $link_path ]; then
-    echo $link_path:file already exist
+    backup $link_path
+    ln -s $source_file_path $link_path
   elif [ ! -d $link_path_dirname ]; then
   # if path to dir is not exist then create
     mkdir -p $link_path_dirname
@@ -55,26 +56,40 @@ delete_link() {
 }
 
 
-# TODO
-# backup() {
-#   do backup configuration file if link path match with other file
-# }
+backup() {
+  local file_path=$1
+
+  local backup_file_path=$backup_dir_path/${file_path#/home/$(whoami)}
+  local backup_file_dir_path=$(dirname $backup_file_path)
+
+  if [ -f $backup_file_path ]; then
+    echo $backup_file_path: already exist. backup is impossible
+    exit 2
+  fi
+
+  if [ ! -d $backup_file_dir_path ]; then
+    mkdir -p $backup_file_dir_path
+  fi
+
+  mv $file_path $backup_file_dir_path
+}
 
 
 usage()
 {
    echo ""
-   echo "Usage: $0 -d dir -c command"
+   echo "Usage: $0 -d dir -c command -b backup_dir"
    local EXIT_WITH_ERROR=1
    exit $EXIT_WITH_ERROR
 }
 
 
-while getopts ":c:d:" opt; do
+while getopts ":c:d:b:" opt; do
    case "$opt" in
       c)
         command=${OPTARG}
-        if [ $command == "add" ] || [  $command == "delete" ]; then
+        if [ $command == "add" ] ||
+           [ $command == "delete" ]; then
           continue
         else
           usage
@@ -86,6 +101,9 @@ while getopts ":c:d:" opt; do
           echo "$dir_path is not directory "
           usage
         fi;;
+      b)
+        backup_dir=${OPTARG}
+        backup_dir_path=$(pwd)/$backup_dir;;
       *)
         usage;;
    esac
