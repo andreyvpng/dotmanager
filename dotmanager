@@ -1,0 +1,100 @@
+#!/bin/bash
+
+
+# Get all files in the directory of recursive methods
+get_files() {
+  local dir_name=$1
+  local files=$(ls -a $dir_name)
+  for item in $files; do
+    case $item in
+      ".")
+        continue;;
+      "..")
+        continue;;
+      *)
+        local item_path="$1/$item"
+
+        # if item is directory then run recursive to
+        # get files in this directory
+        if [ -d "${item_path}" ]; then
+          get_files $item_path
+
+        # if item is file then echo path to this file
+        elif [ -f "${item_path}" ]; then
+          echo $item_path;
+        fi
+    esac
+  done
+}
+
+
+create_link() {
+  local source_file_path=$1
+  local link_path="/home/$USER/$2"
+  local link_path_dirname=$(dirname $link_path)
+
+  # TODO: exist file
+
+  # if path to dir is not exist then create
+  if [ ! -d $link_path_dirname ]; then
+    mkdir -p $link_path_dirname
+  fi
+
+  if [ -L $link_path ]; then
+    echo  $link_path:link exist!
+  else
+    #echo "Source" $source_file_path  "Link" $link_path
+    ln -s $source_file_path $link_path
+  fi
+}
+
+
+delete_link() {
+  local path_to_link="/home/$USER/$1"
+  if [ -L $path_to_link ]; then
+    unlink $path_to_link
+  fi
+}
+
+
+usage()
+{
+   echo ""
+   echo "Usage: $0 -d dir -c command"
+   local EXIT_WITH_ERROR=1
+   exit $EXIT_WITH_ERROR
+}
+
+
+while getopts ":c:d:" opt; do
+   case "$opt" in
+     # TODO: check of arguments
+      c)
+        command=${OPTARG}
+        ;;
+      d)
+        dir=${OPTARG}
+        ;;
+      *)
+        usage
+        ;;
+   esac
+done
+
+
+if [ -z "${command}" ] || [ -z "${dir}" ]; then
+  usage
+fi
+
+
+path_to_dir=$(pwd)/$dir
+directory_files=$(get_files $path_to_dir)
+
+for file in $directory_files
+do
+  if [ $command = "add" ]; then
+    create_link $file "${file#$path_to_dir/}"
+  elif [ $command = "delete" ]; then
+    delete_link "${file#$path_to_dir/}"
+  fi
+done
