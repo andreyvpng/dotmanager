@@ -33,14 +33,12 @@ create_link() {
   local link_path="/home/$USER/$2"
   local link_path_dirname=$(dirname $link_path)
 
-  # TODO: exist file
-
+  if [ -f $link_path ] && [ ! -L $link_path ]; then
+    echo $link_path:file already exist
+  elif [ ! -d $link_path_dirname ]; then
   # if path to dir is not exist then create
-  if [ ! -d $link_path_dirname ]; then
     mkdir -p $link_path_dirname
-  fi
-
-  if [ -L $link_path ]; then
+  elif [ -L $link_path ]; then
     echo  $link_path:link exist!
   else
     #echo "Source" $source_file_path  "Link" $link_path
@@ -57,6 +55,12 @@ delete_link() {
 }
 
 
+# TODO
+# backup() {
+#   do backup configuration file if link path match with other file
+# }
+
+
 usage()
 {
    echo ""
@@ -68,16 +72,22 @@ usage()
 
 while getopts ":c:d:" opt; do
    case "$opt" in
-     # TODO: check of arguments
       c)
         command=${OPTARG}
-        ;;
+        if [ $command == "add" ] || [  $command == "delete" ]; then
+          continue
+        else
+          usage
+        fi;;
       d)
         dir=${OPTARG}
-        ;;
+        dir_path=$(pwd)/$dir/
+        if [ ! -d "$dir_path" ]; then
+          echo "$dir_path is not directory "
+          usage
+        fi;;
       *)
-        usage
-        ;;
+        usage;;
    esac
 done
 
