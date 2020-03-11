@@ -34,8 +34,10 @@ create_link() {
   local link_path_dirname=$(dirname $link_path)
 
   if [ -f $link_path ] && [ ! -L $link_path ]; then
-    backup $link_path
-    ln -s $source_file_path $link_path
+    if [ $backup_dir ]; then 
+      backup $link_path
+      ln -s $source_file_path $link_path
+    fi
   elif [ ! -d $link_path_dirname ]; then
   # if path to dir is not exist then create
     mkdir -p $link_path_dirname
