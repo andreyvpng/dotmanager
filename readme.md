@@ -15,7 +15,7 @@ mv JvKXM ~/bin/dotmanager
 #### Using
 
 ```
-Usage: dotmanager -d dir -c command
+Usage: dotmanager -d dir -c command -b backup_dir
 ```
 
 You may store all dotfiles in general directory.
@@ -41,4 +41,10 @@ nvim
     └── plugins_config.vim -> ../dotfiles/nvim/.config/nvim/plugins_config.vim
 ```
 
-To delete, execute ```manager -d nvim -c delete```
+To delete links, execute ```manager -d nvim -c delete```
+
+If you already have dotfiles in home directory, then you may backup old configurations and setup new
+
+```
+manager -d nvim -c add -b old
+```
