@@ -30,7 +30,7 @@ get_files() {
 
 create_link() {
   local source_file_path=$1
-  local link_path="/home/$USER/$2"
+  local link_path="$HOME/$2"
   local link_path_dirname=$(dirname $link_path)
 
   if [ -f $link_path ] && [ ! -L $link_path ]; then
@@ -51,7 +51,7 @@ create_link() {
 
 
 delete_link() {
-  local path_to_link="/home/$USER/$1"
+  local path_to_link="$HOME/$1"
   if [ -L $path_to_link ]; then
     unlink $path_to_link
   fi
@@ -61,7 +61,7 @@ delete_link() {
 backup() {
   local file_path=$1
 
-  local backup_file_path=$backup_dir_path/${file_path#/home/$(whoami)}
+  local backup_file_path=$backup_dir_path/${file_path#$HOME}
   local backup_file_dir_path=$(dirname $backup_file_path)
 
   if [ -f $backup_file_path ]; then
@@ -79,7 +79,6 @@ backup() {
 
 usage()
 {
-   echo ""
    echo "Usage: $0 -d dir -c command -b backup_dir"
    local EXIT_WITH_ERROR=1
    exit $EXIT_WITH_ERROR
