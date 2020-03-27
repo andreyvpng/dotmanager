@@ -30,7 +30,7 @@ get_files() {
 
 create_link() {
   local source_file_path=$1
-  local link_path="$HOME/$2"
+  local link_path="$prefix/$2"
   local link_path_dirname=$(dirname $link_path)
 
   if [ -f $link_path ] && [ ! -L $link_path ]; then
@@ -51,7 +51,7 @@ create_link() {
 
 
 delete_link() {
-  local path_to_link="$HOME/$1"
+  local path_to_link="$prefix/$1"
   if [ -L $path_to_link ]; then
     unlink $path_to_link
   fi
@@ -61,7 +61,7 @@ delete_link() {
 backup() {
   local file_path=$1
 
-  local backup_file_path=$backup_dir_path/${file_path#$HOME}
+  local backup_file_path=$backup_dir_path/${file_path#$prefix}
   local backup_file_dir_path=$(dirname $backup_file_path)
 
   if [ -f $backup_file_path ]; then
@@ -76,16 +76,29 @@ backup() {
   mv $file_path $backup_file_dir_path
 }
 
-
+: '
 usage()
 {
    echo "Usage: $0 -d dir -c command -b backup_dir"
+}
+'
+
+usage() {
+  cat <<EOF
+usage: ${0##*/} [options]
+
+  Options:
+    -d             Name of directory
+    -c             Command(add, delete)
+    -b             Name of directory for backup old configuration
+    -p             Prefix home directory(default: $HOME)
+
+EOF
    local EXIT_WITH_ERROR=1
    exit $EXIT_WITH_ERROR
 }
 
-
-while getopts ":c:d:b:" opt; do
+while getopts ":c:d:b:p:" opt; do
    case "$opt" in
       c)
         command=${OPTARG}
@@ -102,6 +115,10 @@ while getopts ":c:d:b:" opt; do
           echo "$dir_path is not directory "
           usage
         fi;;
+      p)
+        prefix=${OPTARG}
+        echo $prefix
+        ;;
       b)
         backup_dir=${OPTARG}
         backup_dir_path=$(pwd)/$backup_dir;;
@@ -110,11 +127,13 @@ while getopts ":c:d:b:" opt; do
    esac
 done
 
+if [ -z "${prefix}" ]; then
+  prefix=$HOME
+fi
 
 if [ -z "${command}" ] || [ -z "${dir}" ]; then
   usage
 fi
-
 
 path_to_dir=$(pwd)/$dir
 directory_files=$(get_files $path_to_dir)
